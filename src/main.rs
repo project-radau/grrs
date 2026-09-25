@@ -3,6 +3,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use clap::Parser;
+use anyhow::{Context};
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser)]
@@ -17,8 +18,11 @@ struct Cli {
 fn main() -> std::io::Result<()> {
     let args = Cli::parse();
 
-    let f = File::open(&args.path)?;
-    let reader = BufReader::new(f);
+    let file = File::open(&args.path)
+        .with_context(|| format!("could not read file `{}`", args.path.display()))
+        .unwrap();
+
+    let reader = BufReader::new(file);
 
     // Gehe jede Zeile der Datei einzeln durch
     for line in reader.lines() {
